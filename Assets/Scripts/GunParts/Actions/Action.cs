@@ -1,18 +1,23 @@
 using System;
 using DefaultNamespace;
+using Interfaces;
 using Rounds;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using Weapons;
 using Weapons.Ranged.Magazines;
 using static Round;
+using Random = Unity.Mathematics.Random;
+
 #nullable  enable
 
 namespace GunParts.Actions {
-	[RequireComponent(typeof(Gun)), ExecuteAlways, DisallowMultipleComponent, HideMonoScript] public abstract class Action : GunPart {
-		[TabGroup("1", "Stats")]                  public  Cartridge          Cartridge;
+	[RequireComponent(typeof(Receiver)), ExecuteAlways, DisallowMultipleComponent, HideMonoScript] public abstract class Action : GunPart {
+		private AudioClip cockSound;
+
+		[TabGroup("1", "Stats")]                  public  Cartridge           Cartridge;
 		[TabGroup("1", "Stats")]                  public  Cartridge.Strengths Strength;
-		[ShowInInspector, TabGroup("1", "Debug")] private IHammerspaceable?   ThingInChamber;
+		[ShowInInspector, TabGroup("1", "Debug")] private MonoBehaviour?      ThingInChamber;
 		private                                           Magazine            Magazine     => gameObject.GetComponent<Magazine>();
 		protected                                         Transform           EjectionPort => gameObject.transform.Find(EJECTION_PORT_NAME);
 		private                                           Transform           Opening      => gameObject.transform.Find(OPENING_NAME);
@@ -37,17 +42,28 @@ namespace GunParts.Actions {
 				newOpening.transform.SetParent(transform);
 			}
 		}
-		[ResponsiveButtonGroup("1/Debug/Functions")] protected virtual void StrikeHammer() {
+		[ResponsiveButtonGroup("1/Debug/Functions"), HideInEditorMode] protected virtual void StrikeHammer() {
 			if (ThingInChamber is not Round roundInChamber) {
 				Debug.LogWarning("Hammer struck on either an empty chamber or casing.");
 				return;
 			}
-
+			
 			Casing casing = roundInChamber.Casing;
-			roundInChamber.StrikePrimer(gun.Barrel.velocity);
-			gun.Barrel.PassBullet();
+			GetComponent<AudioSource>().PlayOneShot(GetComponent<Receiver>().FireSound);
+			roundInChamber.transform.SetParent(null, true);
+			Vector3 newRotation = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y, transform.eulerAngles.z);
+			roundInChamber.transform.eulerAngles = newRotation;
+			roundInChamber.GetComponent<IHammerspaceable>().ToggleHammerspace(false);
+			setAngle();
+			roundInChamber.StrikePrimer(GetComponent<Barrel>().velocity);
+			Receiver.Barrel.PassBullet();
 			ThingInChamber = casing;
+			ThingInChamber.GetComponent<IHammerspaceable>().ToggleHammerspace(true);
 		}
+		[Button] private void setAngle() {
+			//ThingInChamber.transform.Rotate(Vector3.up, );
+		}
+		
 		[ResponsiveButtonGroup("1/Debug/Functions")] protected virtual void ChamberRound() {
 			if (ThingInChamber != null) {
 				Debug.LogException(new Exception("Double feed!"));
@@ -55,14 +71,18 @@ namespace GunParts.Actions {
 			}
 
 			if (Magazine.Empty) return;
-			ThingInChamber = Magazine.Feed();
-			ThingInChamber.gameObject.transform.SetParent(transform);
-			ThingInChamber.gameObject.transform.position = Opening.position;
+			GetComponent<AudioSource>().PlayOneShot(cockSound);
+			Round fuckThis = Magazine.Feed();
+			fuckThis.eOnFire.AddListener(() => GetComponent<Receiver>().ApplyRecoil(fuckThis));
+			fuckThis.gameObject.transform.SetParent(transform);
+			fuckThis.gameObject.transform.position = Opening.position;
+			ThingInChamber                         = fuckThis;
 		}
 		[ResponsiveButtonGroup("1/Debug/Functions")] protected void Eject() {
 			if (ThingInChamber == null) return;
-			ThingInChamber.ExitHammerspace();
-			ThingInChamber = null;
+			ThingInChamber.GetComponent<IHammerspaceable>().ToggleHammerspace(false);
+			ThingInChamber.transform.position = EjectionPort.position;
+			ThingInChamber                    = null;
 		}
 	}
 }

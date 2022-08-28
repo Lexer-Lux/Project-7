@@ -58,7 +58,7 @@ namespace Weapons.Ranged.Magazines {
 			while (roundsToMake > 0) {
 				Round      newRound    = Round.HandLoad(testRoundStrength, testRoundCartridge, testRoundBullet);
 				rounds.Add(newRound);
-				newRound.EnterHammerspace();
+				newRound.ToggleHammerspace(true);
 				roundsToMake--;
 			}
 

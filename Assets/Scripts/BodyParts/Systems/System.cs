@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Entities;
 using Sirenix.OdinInspector;
-using Sirenix.Utilities.Editor;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
 using ObjectFieldAlignment = Sirenix.OdinInspector.ObjectFieldAlignment;
 
-namespace Body_Parts.Systems {
+namespace BodyParts.Systems {
 	[RequireComponent(typeof(Entity)), HideMonoScript] public abstract class System : MonoBehaviour {
 		private Entity Owner => gameObject.GetComponent<Entity>();
 

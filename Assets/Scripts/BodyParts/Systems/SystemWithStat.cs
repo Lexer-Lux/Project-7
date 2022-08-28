@@ -1,13 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
-using static GMST;
 
-namespace Body_Parts.Systems {
-	public abstract class SystemWithStat : System {
+namespace BodyParts.Systems {
+	public abstract class SystemWithStat : BodyParts.Systems.System {
 		[HorizontalGroup("Colors"), HideLabel] public Color ValueColor;
 		[HorizontalGroup("Colors"), HideLabel] public Color MaxValueColor;
 

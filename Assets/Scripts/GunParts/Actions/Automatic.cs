@@ -10,8 +10,8 @@ namespace GunParts.Actions {
 		[TabGroup("1", "Stats"), SuffixLabel("RPM"), Range(100, 600), ShowInInspector, SerializeField] private int baseFireRate;
 		// ReSharper disable once UnusedMember.Local
 		private                                                                                                                                          float   SecondsBetweenShots => 1 / (FireRate / 60f);
-		[ShowInInspector, ProgressBar(0, "SecondsBetweenShots", ColorGetter = "AmmoColor"), SuffixLabel("s"), HideIf("@CyclingCompleteIn == 0")] private float   CyclingCompleteIn;
-		[OdinSerialize, ShowInInspector, TabGroup("1", "ROF Upgrade")]                                                                           private Upgrade fireRateUpgrade;
+		[ShowInInspector, ProgressBar(0, "SecondsBetweenShots", ColorGetter = "AmmoColor"), SuffixLabel("s"), HideIf("@CyclingCompleteIn <= 0")] private float   CyclingCompleteIn;
+		[OdinSerialize, ShowInInspector, TabGroup("1", "Upgrade")]                                                                           private Upgrade fireRateUpgrade;
 		public Automatic() { fireRateUpgrade = new Upgrade(this); }
 
 		protected override void StrikeHammer() {

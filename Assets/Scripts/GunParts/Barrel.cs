@@ -9,7 +9,7 @@ using Weapons.Ranged;
 
 namespace GunParts {
 	public sealed class Barrel : GunPart {
-		[OdinSerialize, ShowInInspector, Range(1, 10), TabGroup("1", "Stats")] private int     baseVelocity = 1;
+		[OdinSerialize, ShowInInspector, Range(1, 100), TabGroup("1", "Stats")] private int     baseVelocity = 25;
 		[ShowInInspector, ProgressBar(0, 10), TabGroup("1", "Stats")]          public  int     velocity => (int) (baseVelocity + velocityUpgrade.StatModifier);
 		[TabGroup("1", "Stats")]                                               public  bool    IntegralSuppressor; // TODO: This.
 		[ShowInInspector, OdinSerialize, TabGroup("1", "Velocity Upgrade")]    private Upgrade velocityUpgrade;

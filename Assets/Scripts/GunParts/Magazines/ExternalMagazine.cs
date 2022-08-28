@@ -20,7 +20,7 @@ namespace Weapons.Ranged.Magazines {
 		[OdinSerialize, ShowInInspector, TabGroup("1", "Size Upgrade", Order = 3)] private Upgrade capacityUpgrade;
 		public ExternalMagazine() { capacityUpgrade = new Upgrade(this); }
 
-		/// <summary> Creates a new empty magazine of the type appropriate to this gun's ammo capacity upgrade level. </summary> 
+		/// <summary> Creates a new empty magazine of the type appropriate to this Receiver's ammo capacity upgrade level. </summary> 
 		public GameObject GenerateEmptyMagazine() {
 			GameObject? returnValue = null;
 			switch (Level) {
@@ -44,7 +44,7 @@ namespace Weapons.Ranged.Magazines {
 
 		protected override List<Round>        Contents => mag?.Contents ?? null;
 		
-		/// <summary> The only way you should be setting Contents on a gun with detachable mags is through RemoveMag and InsertMag.. </summary>
+		/// <summary> The only way you should be setting Contents on a Receiver with detachable mags is through RemoveMag and InsertMag.. </summary>
 		[Button, TabGroup("1", "Debug")] public void EjectMag() {
 			if (mag == null) {
 				Debug.LogWarning("Hit the mag eject with no mag inserted.");
@@ -57,7 +57,7 @@ namespace Weapons.Ranged.Magazines {
 			mag = null;
 		}
 
-		/// <summary> The only way you should be setting Contents on a gun with detachable mags is through EjectMag and InsertMag.. </summary>
+		/// <summary> The only way you should be setting Contents on a Receiver with detachable mags is through EjectMag and InsertMag.. </summary>
 		[Button, TabGroup("1", "Debug")] public void InsertMag(DetachableMagazine _mag) {
 			if (mag != null) {
 				Debug.LogException(new Exception("Tactical reload failed. Eject your mag first."));

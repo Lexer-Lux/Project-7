@@ -1,18 +1,22 @@
 using System;
 using System.Collections.Generic;
 using DefaultNamespace;
+using GunParts;
+using Interfaces;
 using Rounds;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Events;
+using Weapons;
 
-public class Round : MonoBehaviour, IHammerspaceable {
+[HideMonoScript, DisallowMultipleComponent, ExecuteAlways] public class Round : MonoBehaviour, IHammerspaceable {
 	public Cartridge.Strengths Strength;
 	public Color               Color     => Bullet.Color;
 	public Cartridge           Cartridge => Casing.Cartridge;
 	public Casing              Casing    => GetComponentInChildren<Casing>();
 	public Bullet              Bullet    => GetComponentInChildren<Bullet>();
 
-	[ShowInInspector] public bool InHammerspace{ get; private set; }
+	[ShowInInspector] public bool HammerspaceState{ get; private set; }
 
 	public static Round HandLoad(Cartridge.Strengths Powder, Cartridge Cartridge, Bullet aoeu) {
 		GameObject newGO  = new GameObject();
@@ -25,40 +29,42 @@ public class Round : MonoBehaviour, IHammerspaceable {
 		return newGO.GetComponent<Round>();
 	}
 
-	public void Start() {
-		if (transform.parent == null) ExitHammerspace();
-		if (transform.parent != null) EnterHammerspace();
-	}
-
-	[Button] public void EnterHammerspace() {
-		Bullet.HammerspaceToggler.ToggleHammerspace(true);
-		Casing.HammerspaceToggler.ToggleHammerspace(true);
-		InHammerspace = true;
-	}
-	[Button] public void ExitHammerspace() {
-		Bullet.HammerspaceToggler.ToggleHammerspace(false);
-		Casing.HammerspaceToggler.ToggleHammerspace(false);
-		InHammerspace = false;
-		transform.SetParent(null, true);
+	public void ToggleHammerspace(bool State) {
+		Bullet.HammerspaceToggler.ToggleHammerspace(State);
+		Casing.HammerspaceToggler.ToggleHammerspace(State);
+		HammerspaceState = State;
 	}
 
 	private float powderVelocityModifier{
 		get {
+			return Strength switch {
+				Cartridge.Strengths.Subsonic => Cartridge.SubsonicSpeedMalus, Cartridge.Strengths.Regular => 1, Cartridge.Strengths.HighPower => Cartridge.OverPressureSpeedBonus, _ => throw new Exception()
+			};
+		}
+	}
+	
+	public int Recoil{
+		get {
 			switch (Strength) {
-				case Cartridge.Strengths.Subsonic:  return Cartridge.SubsonicSpeedMalus;
-				case Cartridge.Strengths.Regular:   return 1;
-				case Cartridge.Strengths.HighPower: return Cartridge.OverPressureSpeedBonus;
-				default:                            throw new Exception();
+				case Rounds.Cartridge.Strengths.Regular:   return Cartridge.Recoil;
+				case Rounds.Cartridge.Strengths.Subsonic:  return Cartridge.Recoil + Cartridge.SubsonicRecoilDecrease;
+				case Rounds.Cartridge.Strengths.HighPower: return Cartridge.Recoil + Cartridge.OverPressureRecoilIncrease;
+				default: Debug.LogException(new ArgumentException("Invalid powder load."));
+					return 0;
 			}
 		}
 	}
 
-	[Button] public void StrikePrimer(float BaseVelocity) {
-		if (InHammerspace) Debug.LogError("You should have known better than to set off explosions in hammerspace.");
+	[Button] public void StrikePrimer(float MuzzleVelocity) {
+		if (HammerspaceState) Debug.LogError("You should have known better than to set off explosions in hammerspace.");
 
-		Bullet.GetComponent<Rigidbody>().velocity = Bullet.transform.forward * BaseVelocity * powderVelocityModifier;
+		Bullet.GetComponent<Rigidbody>().velocity = Bullet.transform.right * MuzzleVelocity * powderVelocityModifier;
+		eOnFire.Invoke();
+
 		Bullet.transform.SetParent(null, true);
 		Casing.transform.SetParent(null, true);
 		Destroy(this);
 	}
+	public UnityEvent eOnFire;
+	public void       Start() => eOnFire = new();
 }

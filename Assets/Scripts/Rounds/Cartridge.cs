@@ -8,9 +8,9 @@ namespace Rounds {
 
 		public GameObject CasingPrefab;
 		public GameObject BulletPrefab;
-		
-		[Range(0, 50)] public int  BaseDamage;
-		public                bool HasPowder;
+
+		[Range(0, 50)] public int BaseDamage;
+		[Range(0, 25)] public int Recoil = 0;
 
 		public int OverPressureDamageBonus = 2;
 		public int SubsonicDamageMalus     = -2;
@@ -18,5 +18,7 @@ namespace Rounds {
 		public float OverPressureSpeedBonus = 1.5f;
 		public float SubsonicSpeedMalus     = 0.5f;
 
+		public int OverPressureRecoilIncrease = 2;
+		public int SubsonicRecoilDecrease     = -2;
 	}
 }

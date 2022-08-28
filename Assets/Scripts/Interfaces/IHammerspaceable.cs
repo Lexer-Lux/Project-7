@@ -1,11 +1,6 @@
-using Sirenix.OdinInspector;
-using UnityEngine;
-
-namespace DefaultNamespace {
+namespace Interfaces {
 	public interface IHammerspaceable {
-		GameObject gameObject   { get; }
-		bool       InHammerspace{ get; }
-		void       EnterHammerspace();
-		void       ExitHammerspace();
+		public bool HammerspaceState              { get; }
+		public void ToggleHammerspace(bool State) { }
 	}
 }
