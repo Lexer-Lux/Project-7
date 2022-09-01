@@ -6,7 +6,6 @@ using Entities;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
-using static HUD;
 using static BodyParts.Legs;
 
 #nullable enable

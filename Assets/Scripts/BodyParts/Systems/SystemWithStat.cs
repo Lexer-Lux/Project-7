@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 namespace BodyParts.Systems {
-	public abstract class SystemWithStat : BodyParts.Systems.System {
+	public abstract class SystemWithStat : BodyParts.Systems.System, UI.IBarTrackable {
 		[HorizontalGroup("Colors"), HideLabel] public Color ValueColor;
 		[HorizontalGroup("Colors"), HideLabel] public Color MaxValueColor;
 

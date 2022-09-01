@@ -8,15 +8,13 @@ using UnityEngine.Serialization;
 
 namespace BodyParts.Player {
 	[RequireComponent(typeof(PlayerCharacter), typeof(Animator), typeof(Rigidbody))] [RequireComponent(typeof(CirculatorySystem), typeof(NervousSystem), typeof(IntegumentarySystem))] public sealed class Legs : BodyParts.Legs {
-		[ShowInInspector, HideInEditorMode, ProgressBar(0, "MaxSpeed", ColorGetter = "moveColor")] public float Velocity => gameObject.GetComponent<Rigidbody>().velocity.magnitude;
-
 		public override MovementModes MovementMode{
 			get {
 				if (animator.GetCurrentAnimatorStateInfo(0).IsTag("Crouch")) { return MovementModes.Crouch; }
 				else if (animator.GetCurrentAnimatorStateInfo(0).IsTag("Run")) { return MovementModes.Run; }
 				else if (animator.GetCurrentAnimatorStateInfo(0).IsTag("Walk")) { return MovementModes.Walk; }
 				else if (animator.GetCurrentAnimatorStateInfo(0).IsTag("Airborne")) { return MovementModes.Airborne; }
-				else throw new Exception(); 
+				else throw new Exception();
 			}
 		}
 		public override bool      DownHeld  { set => animator.SetBool("Down Held", value); }
@@ -34,21 +32,22 @@ namespace BodyParts.Player {
 		// ReSharper disable once UnusedMember.Local
 		private Color moveColor() => MovementModeColors[MovementMode];
 
-		// * Male walk speed: 1.45m/s (age 40) - 1.00m/s (age 70), Usain Bolt peak speed: 12.42m/s
-		[FoldoutGroup("Speeds")]
+		[TitleGroup("Velocity")]
+		[ShowInInspector, HideInEditorMode, ProgressBar(0, "MaxSpeed", ColorGetter = "moveColor")]                   public  float Velocity => gameObject.GetComponent<Rigidbody>().velocity.magnitude;
 
-		// TODO: I changed my mind. Move all these GMSTs out into their own thing again, and make a nice Odin editor window for them.
-		[ShowInInspector, ReadOnly, FoldoutGroup("Speeds")]
-		public float SneakSpeed => GetComponent<IntegumentarySystem>().Level * sneakSpeedPerINT + baseSneakSpeed;
-		[ShowInInspector, ReadOnly, FoldoutGroup("Speeds")]                                 public  float WalkSpeed => GetComponent<NervousSystem>().Level * walkSpeedPerNRV + baseWalkSpeed;
-		[ShowInInspector, ReadOnly, FoldoutGroup("Speeds")]                                 public  float RunSpeed  => GetComponent<CirculatorySystem>().Level * runSpeedPerCRC + baseRunSpeed;
-		[SerializeField, FoldoutGroup("Speeds")]                                            private float baseSneakSpeed   = 0.5f;
-		[FormerlySerializedAs("sneakSpeedPerCTV")] [SerializeField, FoldoutGroup("Speeds")] private float sneakSpeedPerINT = 0.1f;
-		[SerializeField, FoldoutGroup("Speeds")]                                            private float baseWalkSpeed    = 1.0f;
-		[SerializeField, FoldoutGroup("Speeds")]                                            private float walkSpeedPerNRV  = 0.1f;
-		[SerializeField, FoldoutGroup("Speeds")]                                            private float baseRunSpeed     = 3f;
-		[SerializeField, FoldoutGroup("Speeds")]                                            private float runSpeedPerCRC   = 0.5f;
-		[SerializeField, FoldoutGroup("Speeds")]                                            private float AirborneMaxSpeed = 10.0f;
+		[SerializeField, HorizontalGroup("Velocity/Sneak", 0.4f), LabelText("Sneak ="), Range(0, 10), LabelWidth(50)] private float baseSneakSpeed   = 0.5f;
+		[SerializeField, HorizontalGroup("Velocity/Sneak", 0.4f), LabelText("+ INT x"), LabelWidth(50), Range(0, 1)]                          private float sneakSpeedPerINT = 0.1f;
+		[ShowInInspector, ReadOnly, HorizontalGroup("Velocity/Sneak", 0.2f), LabelText("="), SuffixLabel("m/s"), LabelWidth(25)]              public  float SneakSpeed   => GetComponent<IntegumentarySystem>().Level * sneakSpeedPerINT + baseSneakSpeed;
+		private                                                                                                                                       Color sneakColor() => MovementModeColors[MovementModes.Crouch];
+
+		[SerializeField, HorizontalGroup("Velocity/Walk", 0.4f), LabelText("Walk ="), Range(0, 10), LabelWidth(50)]             private float baseWalkSpeed   = 1.0f;
+		[SerializeField, HorizontalGroup("Velocity/Walk", 0.4f), LabelText("+ NRV x"), LabelWidth(50), Range(0, 1)]             private float walkSpeedPerNRV = 0.1f;
+		[ShowInInspector, ReadOnly, HorizontalGroup("Velocity/Walk", 0.2f), LabelText("="), SuffixLabel("m/s"), LabelWidth(25)] public  float WalkSpeed => GetComponent<NervousSystem>().Level * walkSpeedPerNRV + baseWalkSpeed;
+
+		[SerializeField, HorizontalGroup("Velocity/Run", 0.4f), LabelText("Run ="), Range(0, 10), LabelWidth(50)]              private float baseRunSpeed   = 3f;
+		[SerializeField, HorizontalGroup("Velocity/Run", 0.4f), LabelText("+ CRC x"), LabelWidth(50), Range(0, 1)]             private float runSpeedPerCRC = 0.5f;
+		[ShowInInspector, ReadOnly, HorizontalGroup("Velocity/Run", 0.2f), LabelText("="), SuffixLabel("m/s"), LabelWidth(25)] public  float RunSpeed => GetComponent<CirculatorySystem>().Level * runSpeedPerCRC + baseRunSpeed;
+		[SerializeField, TitleGroup("Velocity"), Range(0, 100), SuffixLabel("m/s")]                                            private float AirborneMaxSpeed = 10.0f;
 
 		public float MaxSpeed{
 			get {
@@ -57,15 +56,17 @@ namespace BodyParts.Player {
 				};
 			}
 		}
+		[TitleGroup("Momentum")] [ShowInInspector, HorizontalGroup("Momentum/Sneak", 0.25f), LabelText("Sneak ="), SuffixLabel("N・s"), LabelWidth(50), PropertyOrder(0)] private float sneakMomentum => adjustedMomentum * sneakMomentumMultiplier;
+		[ShowInInspector, HorizontalGroup("Momentum/Walk", 0.25f), LabelText("Walk ="), SuffixLabel("N・s"), LabelWidth(50), PropertyOrder(0)]                             private float walkMomentum  => adjustedMomentum;
+		[ShowInInspector, HorizontalGroup("Momentum/Run", 0.25f), LabelText("Run ="), SuffixLabel("N・s"), LabelWidth(50), PropertyOrder(0)]                              private float runMomentum   => adjustedMomentum * runMomentumMultiplier;
 
-		[ShowInInspector, FoldoutGroup("Momentum")] private float baseMomentum            = 50f;
-		[ShowInInspector, FoldoutGroup("Momentum")] private float momentumPerINT          = 10f;
-		[ShowInInspector, FoldoutGroup("Momentum")] private float sneakMomentumMultiplier = 0.5f;
-		[ShowInInspector, FoldoutGroup("Momentum")] private float runMomentumMultiplier   = 1.5f;
-		[ShowInInspector, FoldoutGroup("Momentum")] private float adjustedMomentum => baseMomentum + GetComponent<IntegumentarySystem>().Level * momentumPerINT;
-		[ShowInInspector, FoldoutGroup("Momentum")] private float sneakMomentum    => adjustedMomentum * sneakMomentumMultiplier;
-		[ShowInInspector, FoldoutGroup("Momentum")] private float walkMomentum     => adjustedMomentum;
-		[ShowInInspector, FoldoutGroup("Momentum")] private float runMomentum      => adjustedMomentum * runMomentumMultiplier;
+		[SerializeField, LabelText("="), LabelWidth(20), HorizontalGroup("Momentum/Sneak", 0.25f), HorizontalGroup("Momentum/Walk", 0.25f), HorizontalGroup("Momentum/Run", 0.25f), PropertyOrder(1), Range(0, 100)]                        private float baseMomentum            = 50f;
+		[SerializeField, ShowInInspector, LabelText("+ INT x"), LabelWidth(35), HorizontalGroup("Momentum/Sneak", 0.25f), HorizontalGroup("Momentum/Walk", 0.25f), HorizontalGroup("Momentum/Run", 0.25f), PropertyOrder(2), Range(0, 100)] private float momentumPerINT          = 10f;
+		[SerializeField, ShowInInspector, HorizontalGroup("Momentum/Sneak", 0.25f), LabelText("x"), LabelWidth(15), PropertyOrder(3), Range (0, 1)]                                                                                      private float sneakMomentumMultiplier = 0.5f;
+		[SerializeField, ShowInInspector, HorizontalGroup("Momentum/Run", 0.25f), LabelText("x"), LabelWidth(15), PropertyOrder(3), Range(1, 3)]                                                                                        private float runMomentumMultiplier   = 1.5f;
+
+		private float adjustedMomentum => baseMomentum + GetComponent<IntegumentarySystem>().Level * momentumPerINT;
+
 		[ShowInInspector]
 		public float momentum{
 			get {

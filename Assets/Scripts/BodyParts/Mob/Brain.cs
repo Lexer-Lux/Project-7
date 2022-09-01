@@ -5,6 +5,7 @@ using AIStates;
 using Entities;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;
+using Sirenix.Serialization;
 using Unity.Collections;
 using UnityEngine;
 
@@ -12,25 +13,23 @@ using UnityEngine;
 
 namespace BodyParts.Mob {
 	[HideMonoScript, RequireComponent(typeof(Entity), typeof(Eyes))] public class Brain : MonoBehaviour {
-		private Eyes  eyes      => gameObject.GetComponent<Eyes>();
-		public  float Awareness => AIState.AttentionModifier;
-		[ShowInInspector, Sirenix.OdinInspector.ReadOnly]
-		public AIState AIState{
+		private Eyes   eyes      => gameObject.GetComponent<Eyes>();
+		public  float? Alertness => AIState?.AttentionModifier;
+		public  Color?  Mood      => AIState?.Color;
+
+		[ShowInInspector]
+		public AIState? AIState{
 			get => _AIState;
 			set {
-				if (value == _AIState) return;
 				if (AIState == value || value.enabled) Debug.LogWarning("AI script is already enabled or flagged as active!");
-				else if (value != DefaultState && value != AlertedState && value != HostileState) Debug.LogWarning("Not a valid AI state!");
-				else {
-					AIState.enabled = false;
-					value.enabled = true;
-					AIState       = value;
-					Mood          = AIState.Color;
-				}
+				if (value != DefaultState && value != AlertedState && value != HostileState) Debug.LogWarning("Not a valid AI state!");
+
+				if (AIState != null) AIState.enabled = false;
+				value.enabled = true;
+				_AIState       = value;
 			}
 		}
-		private AIState _AIState;
-		public  Color   Mood;
+		[SerializeField, HideInInspector] private AIState? _AIState;
 
 		private AIState DefaultState => gameObject.GetComponent<Patrolling>();
 		private AIState AlertedState => gameObject.GetComponent<Searching>();
@@ -40,8 +39,7 @@ namespace BodyParts.Mob {
 		private bool timeToIncreaseHostility => eyes.seeingPlayer && eyes.playerIdentified;
 
 		public void Start() {
-			if (AIState != null || DefaultState == null || AlertedState == null || HostileState == null) throw new Exception("Brain is not properly configured");
-			AIState = DefaultState;
+			if (AIState == null && DefaultState != null) AIState = DefaultState;
 		}
 
 		public void Update() {

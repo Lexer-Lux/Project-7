@@ -62,10 +62,12 @@ namespace BodyParts.Player {
 			void updateLookValue() {
 				switch (myCamera.CameraMode) {
 					case CameraModes.TopDown:
-						Vector3 newCursorTransform = cursorTransform.transform.position;
+						/*Vector3 newCursorTransform = cursorTransform.transform.position;
 						newCursorTransform.x               += lookInputValue.x * lookSpeed;
 						newCursorTransform.z               += lookInputValue.y * lookSpeed;
-						cursorTransform.transform.position =  newCursorTransform;
+						cursorTransform.transform.position =  newCursorTransform;*/
+						Rigidbody camFollow = cursorTransform.GetComponent<Rigidbody>();
+						camFollow.velocity = new Vector3(lookInputValue.x * lookSpeed, 0, lookInputValue.y * lookSpeed);
 						break;
 					case CameraModes.ThirdPerson or CameraModes.FirstPerson:
 						cursorTransform.transform.position = myCamera.Camera.ScreenToWorldPoint(new Vector3(crosshairScreenPosition.x, crosshairScreenPosition.y, 25f));
